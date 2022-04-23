@@ -1,4 +1,4 @@
-import ShortUniqueId from 'short-unique-id';
+import ShortUniqueId from "short-unique-id";
 
 // initialise short unique id
 const shortUniqueId = new ShortUniqueId();
