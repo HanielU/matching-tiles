@@ -59,9 +59,6 @@
               }, 1000);
               return { ...matchedTile, matched: true };
             });
-
-            // trigger reactivity
-            matches[matchIndex] = currentMatch;
           }
 
           // else clear all the items in the current matches array
@@ -69,6 +66,9 @@
             executionPaused = true;
             setTimeout(() => removeMatchWithTileFromMatches(currentTile), 1000);
           }
+
+          // trigger reactivity
+          matches[matchIndex] = currentMatch;
         }
       }
     }
