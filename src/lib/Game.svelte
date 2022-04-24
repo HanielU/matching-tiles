@@ -1,19 +1,16 @@
 <script lang="ts">
-  import { cubicOut } from "svelte/easing";
-  import type { TransitionConfig } from "svelte/types/runtime/transition";
   import { checkOccurence2d, generateTiles, bgFromType } from "./tiledata";
+  import { cubicOut } from "svelte/easing";
   import type { Match, TileData } from "./types";
+  import type { TransitionConfig } from "svelte/types/runtime/transition";
 
-  const types = ["Star", "Dog", "Broom", "Witch", "Cat", "Pig", "Horse", "Monkey"];
-  const MAX_MATCHES = types.length;
-  let tiles = generateTiles(types);
+  const tileTypes = ["Star", "Dog", "Broom", "Witch", "Cat", "Pig", "Horse", "Monkey"];
+  const maxMatches = tileTypes.length;
+  let tiles = generateTiles(tileTypes);
   let matches: Partial<Match>[] = [];
   let currentMoves = 0;
   let executionPaused = false;
-
-  $: totalMatches = matches.every(match => match[0]?.matched === true)
-    ? matches.length
-    : matches.length - 1;
+  let totalMatches = 0;
 
   $: matchedPairs = matches[matches.length - 1]?.map(tile => tile.id);
 
@@ -21,7 +18,6 @@
     const tileOccurence = checkOccurence2d(matches, "id", id);
     if (tileOccurence !== 0 || executionPaused) return;
 
-    // get the current tile
     const currentTile = tiles.find(tile => tile.id === id);
 
     // if there already matches
@@ -56,19 +52,16 @@
               setTimeout(() => {
                 tiles[tiles.indexOf(matchedTile)] = { ...matchedTile, matched: true };
                 executionPaused = false;
-              }, 1000);
+                totalMatches = getTotalMatches();
+              }, 800);
               return { ...matchedTile, matched: true };
             });
-          }
-
-          // else clear all the items in the current matches array
-          else {
+          } else {
             executionPaused = true;
-            setTimeout(() => removeMatchWithTileFromMatches(currentTile), 1000);
+            setTimeout(() => emptyCurrentMatchArray(currentTile), 1000);
           }
 
-          // trigger reactivity
-          matches[matchIndex] = currentMatch;
+          matches[matchIndex] = currentMatch; // trigger reactivity
         }
       }
     }
@@ -80,20 +73,25 @@
     }
   }
 
+  function getTotalMatches() {
+    return matches.every(match => match[0]?.matched === true) ? matches.length : matches.length - 1;
+  }
+
   function addTileToMatch(match: TileData[], tile: TileData) {
     if (match.length == 1) currentMoves++;
     match.push(tile);
   }
 
-  function removeMatchWithTileFromMatches(tile: TileData) {
+  function emptyCurrentMatchArray(tile: TileData) {
     matches = matches.filter(match => !match.includes(tile));
     executionPaused = false;
   }
 
   function resetGame() {
-    tiles = generateTiles(types);
+    tiles = generateTiles(tileTypes);
     matches = [];
     currentMoves = 0;
+    totalMatches = 0;
   }
 
   function rotateY(node: Element, { duration = 450, reverse = false }): TransitionConfig {
@@ -108,7 +106,7 @@
 <header>
   <div>
     <h4>Pairs Matched</h4>
-    <p>{totalMatches}/{MAX_MATCHES}</p>
+    <p>{totalMatches}/{maxMatches}</p>
   </div>
 
   <div>
@@ -209,7 +207,7 @@
   }
 
   .matched {
-    filter: brightness(90%) opacity(0.5);
+    filter: brightness(80%) opacity(0.75);
   }
 
   footer {
@@ -225,7 +223,7 @@
       font-weight: 600;
       color: white;
       cursor: pointer;
-      background: #575151;
+      background: rgba(#141414, 0.9);
     }
   }
 </style>
